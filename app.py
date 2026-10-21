@@ -1,5 +1,6 @@
 """Local photo-to-blog workspace. Python 3.11+, no third-party packages."""
 import base64
+import contextlib
 import json
 import os
 import re
@@ -26,12 +27,19 @@ STYLES = {
     'mine': '제공된 예시에서 존댓말 여부, 어미, 문장 길이, 문단 길이, 이모지 빈도를 추출해 적용한다.',
 }
 
+@contextlib.contextmanager
 def db():
+    # sqlite3.Connection의 with 구문은 트랜잭션만 처리하고 연결을 닫지 않아,
+    # Windows에서 파일 잠금이 남는다. 예외 여부와 관계없이 여기서 닫는다.
     DATA.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(DATA / 'studio.sqlite3')
-    conn.execute('CREATE TABLE IF NOT EXISTS settings (id INTEGER PRIMARY KEY, body TEXT NOT NULL)')
-    conn.execute('CREATE TABLE IF NOT EXISTS drafts (id TEXT PRIMARY KEY, body TEXT NOT NULL, updated TEXT NOT NULL)')
-    return conn
+    try:
+        conn.execute('CREATE TABLE IF NOT EXISTS settings (id INTEGER PRIMARY KEY, body TEXT NOT NULL)')
+        conn.execute('CREATE TABLE IF NOT EXISTS drafts (id TEXT PRIMARY KEY, body TEXT NOT NULL, updated TEXT NOT NULL)')
+        with conn:
+            yield conn
+    finally:
+        conn.close()
 
 def load_settings():
     with db() as conn:
