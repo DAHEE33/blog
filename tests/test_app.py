@@ -129,7 +129,7 @@ class FlowTests(unittest.TestCase):
         self.assertEqual(r['titles'], RESULT['titles'])
 
     def test_missing_cli_no_fallback_to_paid_api(self):
-        with patch.object(app.shutil, 'which', return_value=None), patch.object(app.urllib.request, 'urlopen') as upstream:
+        with patch.object(app, 'find_cli', return_value=None), patch.object(app.urllib.request, 'urlopen') as upstream:
             with self.assertRaisesRegex(ValueError, 'CLI를 찾지'):
                 app.generate({'place': '식당', 'photos': [PHOTO]}, {'engine': 'codex'})
             upstream.assert_not_called()

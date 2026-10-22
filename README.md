@@ -78,4 +78,10 @@ Windows에서 8개 테스트가 정리 오류 없이 통과합니다 (2026-10-21
 실제 연결은 Claude Code CLI v2.1.305에서 사진 없는 텍스트 생성 1회를 확인했습니다 (2026-10-21).
 사진 포함 생성, Codex CLI(미설치), 화면 클릭·시각 검증은 아직 확인하지 못했습니다.
 
+관련 글 자동 검색·키워드·구성 분석을 생성 경로에 연결했습니다. 입력 화면의 자동 분석을 선택하면 공식 API로 검색하고 최대 3개 글의 본문을 분석합니다. 단어 빈도·등장 글 수·정보 항목 추정 순서를 표시하며, 말투는 내 설정만 적용합니다. 검색량이나 상위 노출 점수가 아닙니다. 수집 실패 시 사진·메모로 작성을 계속합니다. 실제 AI 포함 생성과 화면 확인은 추가 검증이 필요합니다.
+`python tools/verify_collect.py "검색어"` — 실제 네트워크로 검색·본문 추출을 시험하고 결과를 `tools/verify_collect_result.json`에 남깁니다.
+신규 키는 NAVER API HUB에서 블로그 API를 등록해 발급받습니다. `naver.example.json`을 `naver.local.json`으로 복사한 뒤 `client_id`, `client_secret`을 입력하세요(이미 파일이 있으면 직접 수정). 환경변수 NAVER_CLIENT_ID / NAVER_CLIENT_SECRET이 있으면 파일보다 우선합니다. YAML이나 추가 패키지는 필요 없습니다. `naver.local.json`은 Git 제외 대상이며 공유하지 마세요.
+기본 검증은 공식 블로그 검색 API만 호출합니다. 본문 추출 시험까지 하려면 `python tools/verify_collect.py "검색어" --with-bodies`를 사용하세요. 과거 검색 HTML·DuckDuckGo 검증 경로는 실행하지 않습니다. 검색어 트렌드는 아직 연결하지 않았습니다.
+검증 결과와 수집 경로별 판단은 REQUIREMENTS.md 3장을 참고하세요.
+
 다른 가이드의 비공개 프롬프트는 포함하지 않았습니다. 이 프로그램의 작성 지침은 별도로 작성했습니다.
