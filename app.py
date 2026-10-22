@@ -15,7 +15,7 @@ import uuid
 import webbrowser
 import threading
 from collections import OrderedDict
-from collect import collect
+from nsupporter import collect
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -306,7 +306,8 @@ class Handler(BaseHTTPRequestHandler):
                 progress = lambda message: report_progress(job_id, message)
                 try:
                     progress('입력 확인 완료')
-                    p['collection'] = collect(str(p.get('keyword') or p['place'])[:200], progress) if p.get('auto_analyze') else {}
+                    query = ' '.join(dict.fromkeys([str(p['place']).strip(), str(p.get('keyword', '')).split(',')[0].strip()])).strip()
+                    p['collection'] = collect(query[:200], progress) if p.get('auto_analyze') else {}
                     settings = load_settings()
                     progress(f"{settings.get('engine', 'codex')} AI 실행 중 · 사진·분석 자료 전달 후 응답 대기 (최대 5분)")
                     result = generate(p, settings)
