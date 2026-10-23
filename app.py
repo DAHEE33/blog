@@ -519,9 +519,9 @@ class Handler(BaseHTTPRequestHandler):
                     settings = load_settings()
                     progress(f"{settings.get('engine', 'codex')} AI 실행 중 · 사진·분석 자료 전달 후 응답 대기 (최대 5분)")
                     result = generate(p, settings, progress)
-                    progress('AI 응답 검증 완료 · 초안 저장 중')
-                    draft = save_draft(dict(p, result=result))
-                    progress('초안 저장 완료')
+                    progress('AI 응답 검증 완료 · 저장 전 초안 준비')
+                    draft = dict(p, result=result)
+                    progress('초안 생성 완료 · 초안 저장 버튼을 눌러 보관해 주세요')
                     return self.reply(draft)
                 except Exception:
                     progress('작업 실패 · 화면의 오류 안내를 확인하세요')

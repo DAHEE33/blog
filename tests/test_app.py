@@ -78,7 +78,14 @@ class FlowTests(unittest.TestCase):
         self.assertEqual(draft['result']['body'], RESULT['body'])
         self.assertEqual(calls[0]['messages'][0]['content'][1]['source']['media_type'], 'image/png')
         self.assertIn('기존 말투', calls[0]['messages'][0]['content'][-1]['text'])
+        self.assertEqual(len(self.request('/api/state')['drafts']), 0)
+        saved = self.request('/api/save', draft)
+        self.assertIn('id', saved)
         self.assertEqual(len(self.request('/api/state')['drafts']), 1)
+        with patch.object(app, 'generate', return_value=dict(RESULT, body='수정 생성 결과')):
+            regenerated = self.request('/api/generate', dict(saved, auto_place=False))
+        self.assertEqual(self.request('/api/drafts/' + saved['id'])['result']['body'], RESULT['body'])
+        self.assertNotEqual(regenerated['result']['body'], RESULT['body'])
 
     def test_missing_credentials_and_token_rejected(self):
         with self.assertRaises(urllib.error.HTTPError) as caught:
@@ -197,6 +204,7 @@ class FlowTests(unittest.TestCase):
             draft = self.request('/api/generate', {'place': '신림 올바른 숙성회', 'notes': '방문', 'photos': [], 'auto_place': True})
         self.assertEqual(draft['place_info']['items']['주차']['value'], '가게 앞 2대')
         self.request('/api/place', {'place': '신림 올바른 숙성회', 'edit': {'주차': '발렛만 가능'}})
+        draft = self.request('/api/save', draft)
         reloaded = self.request('/api/drafts/' + draft['id'])
         self.assertEqual(reloaded['place_info']['items']['주차']['value'], '가게 앞 2대')
 
