@@ -8,21 +8,15 @@ python tools/probe_nsupporter.py probe
 """
 import argparse
 import json
+import sys
 from pathlib import Path
 
-from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 
 ROOT = Path(__file__).resolve().parents[1]
-PROFILE = ROOT / 'tmp' / 'nsupporter-chrome'
-ADDRESS = '127.0.0.1:9223'
-
-
-def connect():
-    options = webdriver.ChromeOptions()
-    options.debugger_address = ADDRESS
-    return webdriver.Chrome(options=options)
+sys.path.insert(0, str(ROOT))
+from browser import PROFILE, ADDRESS, connect, ensure_browser, port_open  # noqa: E402
 
 
 def main():
@@ -30,15 +24,16 @@ def main():
     parser.add_argument('action', choices=['setup', 'probe'])
     args = parser.parse_args()
     if args.action == 'setup':
-        PROFILE.mkdir(parents=True, exist_ok=True)
-        options = webdriver.ChromeOptions()
-        options.add_argument(f'--user-data-dir={PROFILE}')
-        options.add_argument('--remote-debugging-address=127.0.0.1')
-        options.add_argument('--remote-debugging-port=9223')
-        options.add_experimental_option('detach', True)
-        driver = webdriver.Chrome(options=options)
-        driver.get('https://www.reviewerns.com/portal/lab/nsupporter/')
-        print('시험용 Chrome을 열었습니다. 이 창에 엔서포터를 설치한 뒤 네이버 검색 결과에서 분석을 열어 주세요.')
+        if port_open():
+            print('전용 Chrome이 이미 열려 있어 재사용합니다. 엔서포터가 설치돼 있다면 추가 작업이 필요 없습니다.')
+            print('엔서포터를 아직 설치하지 않았다면 그 창에서 직접 설치 페이지를 여세요: https://www.reviewerns.com/portal/lab/nsupporter/')
+            return
+        ensure_browser(print)
+        driver = connect()
+        if not any('reviewerns.com' in (driver.current_url or '') for _ in [0]):
+            driver.switch_to.new_window('tab')
+            driver.get('https://www.reviewerns.com/portal/lab/nsupporter/')
+        print('전용 Chrome을 열었습니다. 엔서포터가 설치돼 있지 않다면 이 창에서 설치해 주세요. 이미 설치돼 있으면 바로 사용하면 됩니다.')
         driver.service.stop()
         return
     driver = connect()
